@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: identix-attendance-backend
+    env: python
+    region: singapore
+    plan: free
+    rootDir: backend
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /ping
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_2VwgKF3qdYQk@ep-wandering-hat-b35rrgsu-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PROJECT_NAME
+        value: "Identix Biometric Attendance & Payroll System"
+      - key: DEFAULT_ORGANIZATION_NAME
+        value: "Retail Store & Enterprise"
+      - key: DEFAULT_TIMEZONE
+        value: "Asia/Kolkata"
+      - key: DEFAULT_CURRENCY_SYMBOL
+        value: "₹"
+      - key: PYTHON_VERSION
+        value: 3.12.0
