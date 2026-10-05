@@ -6,6 +6,12 @@ import { AuthProvider } from "@/context/AuthContext";
 export const metadata: Metadata = {
   title: "Identix PayFlow - Biometric Attendance & Hourly Payroll",
   description: "Cloud-connected ZKTeco & Identix Biometric Attendance, Hourly Salary Calculation, and Automated Payroll System",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "PayFlow",
+  },
 };
 
 export default function RootLayout({
