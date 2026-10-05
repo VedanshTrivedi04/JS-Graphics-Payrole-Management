@@ -7,24 +7,30 @@ import {
   Fingerprint, 
   Lock, 
   User, 
-  Phone, 
-  Mail, 
   Sun, 
   Moon, 
   ArrowRight, 
   ShieldCheck, 
-  CheckCircle2, 
   Zap, 
-  FileText 
+  FileText,
+  KeyRound
 } from "lucide-react";
 
 export const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { 
+    login, 
+    loginWithBiometric, 
+    isBiometricActive, 
+    enrolledBiometricUser, 
+    disableBiometrics 
+  } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [enableBiometricOnLogin, setEnableBiometricOnLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [biometricLoading, setBiometricLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,11 +38,23 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      await login(identifier, password);
+      await login(identifier, password, enableBiometricOnLogin);
     } catch (err: any) {
       setError(err.message || "Invalid credentials. Please verify your username, phone, or email.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    setBiometricLoading(true);
+    setError(null);
+    try {
+      await loginWithBiometric();
+    } catch (err: any) {
+      setError(err.message || "Fingerprint verification failed. You can sign in using your password.");
+    } finally {
+      setBiometricLoading(false);
     }
   };
 
@@ -70,26 +88,26 @@ export const LoginPage: React.FC = () => {
 
       <div className="w-full max-w-md">
         {/* Brand header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex p-3 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/25 mb-4 animate-bounce">
+        <div className="text-center mb-6">
+          <div className="inline-flex p-3 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/25 mb-3 animate-bounce">
             <Fingerprint className="w-9 h-9" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             Identix PayFlow
           </h1>
-          <p className="mt-1.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+          <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
             Cloud Biometric Attendance, Hourly Wages & Payroll Engine
           </p>
         </div>
 
         {/* Card */}
         <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xl backdrop-blur-xl">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
               Account Login
             </h2>
             <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-              Neon DB Live
+              Live Connected
             </span>
           </div>
 
@@ -99,6 +117,42 @@ export const LoginPage: React.FC = () => {
             </div>
           )}
 
+          {/* 🌟 NATIVE BIOMETRIC / FINGERPRINT QUICK LOGIN BUTTON 🌟 */}
+          {isBiometricActive && (
+            <div className="mb-5 p-4 rounded-2xl bg-gradient-to-br from-blue-600/15 via-indigo-600/10 to-purple-600/15 border border-blue-500/30">
+              <button
+                type="button"
+                onClick={handleBiometricLogin}
+                disabled={biometricLoading}
+                className="w-full flex flex-col items-center justify-center p-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/25 transition-all group cursor-pointer disabled:opacity-50"
+              >
+                <div className="p-3 rounded-full bg-white/15 group-hover:scale-110 transition-transform mb-2">
+                  <Fingerprint className="w-8 h-8 text-white animate-pulse" />
+                </div>
+                <span className="font-bold text-sm">
+                  {biometricLoading ? "Scanning Sensor..." : "Login with Phone Fingerprint"}
+                </span>
+                {enrolledBiometricUser && (
+                  <span className="text-[11px] text-blue-100 font-medium mt-0.5">
+                    Welcome back, {enrolledBiometricUser.full_name || enrolledBiometricUser.username}
+                  </span>
+                )}
+              </button>
+
+              <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-500 px-1">
+                <span>Or enter password below</span>
+                <button
+                  type="button"
+                  onClick={disableBiometrics}
+                  className="text-slate-400 hover:text-rose-500 transition-colors"
+                >
+                  Unlink Fingerprint
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Traditional Password Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
@@ -138,19 +192,37 @@ export const LoginPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Enable Fingerprint Login Checkbox */}
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="checkbox"
+                id="enableBiometricCheck"
+                checked={enableBiometricOnLogin}
+                onChange={(e) => setEnableBiometricOnLogin(e.target.checked)}
+                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 accent-blue-600 cursor-pointer"
+              />
+              <label 
+                htmlFor="enableBiometricCheck" 
+                className="text-xs text-slate-600 dark:text-slate-300 font-medium cursor-pointer flex items-center gap-1.5"
+              >
+                <Fingerprint className="w-3.5 h-3.5 text-blue-500" />
+                Enable phone fingerprint login on this device
+              </label>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
               className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 mt-2"
             >
-              {loading ? "Authenticating..." : "Sign In to Portal"}
+              {loading ? "Authenticating..." : "Sign In with Password"}
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
           {/* Quick Demo Credential Fillers */}
-          <div className="mt-6 pt-5 border-t border-slate-200 dark:border-slate-800">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-center mb-2.5">
+          <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-center mb-2">
               Quick One-Click Demo Logins
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -173,18 +245,18 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Feature Highlights Footer */}
-        <div className="mt-6 grid grid-cols-3 gap-2 text-center text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+        <div className="mt-5 grid grid-cols-3 gap-2 text-center text-[10px] text-slate-500 dark:text-slate-400 font-medium">
           <div className="p-2 rounded-xl glass-panel">
             <Zap className="w-3.5 h-3.5 mx-auto mb-1 text-amber-500" />
-            <span>Zero-LAN Cloud ADMS</span>
+            <span>Zero-LAN Push</span>
           </div>
           <div className="p-2 rounded-xl glass-panel">
             <ShieldCheck className="w-3.5 h-3.5 mx-auto mb-1 text-blue-500" />
-            <span>Hourly Salary Engine</span>
+            <span>Fingerprint Login</span>
           </div>
           <div className="p-2 rounded-xl glass-panel">
             <FileText className="w-3.5 h-3.5 mx-auto mb-1 text-emerald-500" />
-            <span>PDF Slip Generator</span>
+            <span>PDF Slip Engine</span>
           </div>
         </div>
       </div>
