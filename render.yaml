@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: identix-attendance-backend
+    name: identixpay
     env: python
     region: singapore
     plan: free

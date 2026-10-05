@@ -817,7 +817,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div>[Cloud Server Setting]</div>
                 <div>Server Mode: <span className="text-emerald-400">ADMS</span></div>
                 <div>Enable Domain Name: <span className="text-emerald-400">ON</span></div>
-                <div>Server Address: <span className="text-amber-400 font-bold">identix-attendance-backend.onrender.com</span></div>
+                <div>Server Address: <span className="text-amber-400 font-bold">identixpay.onrender.com</span></div>
                 <div>Server Port: <span className="text-amber-400 font-bold">443 (or 80)</span></div>
                 <div>Enable Proxy Server: <span className="text-slate-500">OFF</span></div>
               </div>
