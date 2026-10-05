@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Identix PayFlow</string>
+    <string name="title_activity_main">Identix PayFlow</string>
+    <string name="package_name">com.identix.payflow</string>
+    <string name="custom_url_scheme">com.identix.payflow</string>
+</resources>
