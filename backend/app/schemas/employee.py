@@ -6,7 +6,7 @@ class EmployeeCreate(BaseModel):
     username: str
     password: str
     full_name: str
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     phone: Optional[str] = None
     biometric_pin: Optional[str] = None # Terminal user PIN
     hourly_rate: float = 0.0            # e.g., ₹100.0/hr
@@ -19,7 +19,7 @@ class EmployeeCreate(BaseModel):
 
 class EmployeeUpdate(BaseModel):
     full_name: Optional[str] = None
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     phone: Optional[str] = None
     biometric_pin: Optional[str] = None
     hourly_rate: Optional[float] = None

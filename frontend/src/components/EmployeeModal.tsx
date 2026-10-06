@@ -72,12 +72,16 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
     setLoading(true);
     setError(null);
     try {
+      const payload: any = { ...formData };
+      if (!payload.email || payload.email.trim() === "") delete payload.email;
+      if (!payload.phone || payload.phone.trim() === "") delete payload.phone;
+      if (!payload.biometric_pin || payload.biometric_pin.trim() === "") delete payload.biometric_pin;
+      if (!payload.password || payload.password.trim() === "") delete payload.password;
+
       if (initialData) {
-        const updatePayload: any = { ...formData };
-        if (!updatePayload.password) delete updatePayload.password;
-        await api.employees.update(initialData.id, updatePayload);
+        await api.employees.update(initialData.id, payload);
       } else {
-        await api.employees.create(formData);
+        await api.employees.create(payload);
       }
       onSuccess();
       onClose();
