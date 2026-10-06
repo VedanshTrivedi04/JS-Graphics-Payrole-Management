@@ -59,3 +59,16 @@ class DailyAttendance(Base):
     __table_args__ = (
         UniqueConstraint("employee_id", "date", name="uq_employee_daily_attendance"),
     )
+
+class DeviceHeartbeat(Base):
+    """
+    Tracks real-time device connection status, IP address, and last ping received from the Identix terminal.
+    """
+    __tablename__ = "device_heartbeats"
+
+    id = Column(Integer, primary_key=True, index=True)
+    device_sn = Column(String(50), unique=True, index=True, nullable=False)
+    ip_address = Column(String(60), nullable=True)
+    last_seen = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    last_action = Column(String(50), default="HANDSHAKE") # HANDSHAKE, POLL, PUNCH
+    info = Column(Text, nullable=True)
