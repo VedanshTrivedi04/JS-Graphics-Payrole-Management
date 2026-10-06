@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { LoginPage } from "@/components/LoginPage";
 import { Navbar } from "@/components/Navbar";
 import { AdminDashboard } from "@/components/AdminDashboard";
@@ -10,6 +11,7 @@ import { Fingerprint } from "lucide-react";
 
 export default function Home() {
   const { user, isLoading } = useAuth();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("overview");
   const [simulatorOpen, setSimulatorOpen] = useState(false);
 
@@ -20,7 +22,7 @@ export default function Home() {
           <Fingerprint className="w-10 h-10 animate-spin" />
         </div>
         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-          Connecting to Neon Database...
+          {t("connectingDb")}
         </p>
       </div>
     );

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Fingerprint, Clock, CheckCircle2, ArrowRightCircle, ShieldAlert } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface PunchItem {
   id: number;
@@ -17,13 +18,15 @@ interface LivePunchTickerProps {
 }
 
 export const LivePunchTicker: React.FC<LivePunchTickerProps> = ({ punches, employeeMap = {} }) => {
+  const { t } = useLanguage();
+
   return (
     <div className="rounded-2xl glass-panel p-5 border border-slate-200/80 dark:border-slate-800/80">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-            Real-Time Punch Stream
+            {t("livePunchesTitle")}
           </h3>
         </div>
         <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -35,7 +38,7 @@ export const LivePunchTicker: React.FC<LivePunchTickerProps> = ({ punches, emplo
         {punches.length === 0 ? (
           <div className="text-center py-8 text-xs text-slate-400">
             <Fingerprint className="w-8 h-8 mx-auto mb-2 opacity-40 text-slate-400 animate-pulse" />
-            No punches captured yet. Punch your finger on the Identix terminal or use the Punch Simulator!
+            {t("noPunchesCaptured")}
           </div>
         ) : (
           punches.slice(0, 8).map((punch) => {

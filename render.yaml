@@ -13,7 +13,7 @@ services:
       - key: DATABASE_URL
         value: postgresql://neondb_owner:npg_2VwgKF3qdYQk@ep-wandering-hat-b35rrgsu-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
       - key: SECRET_KEY
-        generateValue: true
+        value: "supersecret_identix_jwt_key_please_change_in_production_998877"
       - key: PROJECT_NAME
         value: "Identix Biometric Attendance & Payroll System"
       - key: DEFAULT_ORGANIZATION_NAME

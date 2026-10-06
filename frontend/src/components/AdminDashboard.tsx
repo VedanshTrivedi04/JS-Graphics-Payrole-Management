@@ -21,6 +21,7 @@ import {
   RefreshCw
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 import { KPICard } from "./KPICard";
 import { HoursBarChart, SalaryBreakdownChart } from "./Charts";
 import { LivePunchTicker } from "./LivePunchTicker";
@@ -42,6 +43,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   simulatorOpen,
   setSimulatorOpen,
 }) => {
+  const { t } = useLanguage();
   const [employees, setEmployees] = useState<any[]>([]);
   const [todayAttendance, setTodayAttendance] = useState<any[]>([]);
   const [rawPunches, setRawPunches] = useState<any[]>([]);
@@ -178,30 +180,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* KPI Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <KPICard
-              title="Present Today"
+              title={t("kpiPresentToday")}
               value={`${presentTodayCount} / ${employees.length}`}
-              subtitle="Staff currently in store / total"
+              subtitle={t("kpiPresentSub")}
               icon={<Users className="w-6 h-6" />}
               colorScheme="emerald"
             />
             <KPICard
-              title="Hours Logged Today"
+              title={t("kpiHoursToday")}
               value={`${totalHoursToday.toFixed(1)} hrs`}
-              subtitle="Sum of active working hours"
+              subtitle={t("kpiHoursSub")}
               icon={<Clock className="w-6 h-6" />}
               colorScheme="blue"
             />
             <KPICard
-              title="Est. Day's Wage"
+              title={t("kpiWageToday")}
               value={`₹${totalEarningsToday.toFixed(2)}`}
-              subtitle="Per-hour rate applied today"
+              subtitle={t("kpiWageSub")}
               icon={<DollarSign className="w-6 h-6" />}
               colorScheme="amber"
             />
             <KPICard
-              title="Total Advances Given"
+              title={t("kpiAdvancesMonth")}
               value={`₹${totalAdvancesThisMonth.toFixed(2)}`}
-              subtitle="Auto-deducts in month payroll"
+              subtitle={t("kpiAdvancesSub")}
               icon={<TrendingUp className="w-6 h-6" />}
               colorScheme="purple"
             />
