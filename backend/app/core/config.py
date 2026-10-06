@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Identix Biometric Attendance & Payroll System"
+    PROJECT_NAME: str = "J.S. Graphics Payroll Management"
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = "supersecret_identix_jwt_key_please_change_in_production_998877"
     ALGORITHM: str = "HS256"

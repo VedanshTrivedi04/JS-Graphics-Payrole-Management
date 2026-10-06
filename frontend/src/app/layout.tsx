@@ -5,13 +5,13 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
-  title: "Identix PayFlow - Biometric Attendance & Hourly Payroll",
-  description: "Cloud-connected ZKTeco & Identix Biometric Attendance, Hourly Salary Calculation, and Automated Payroll System",
+  title: "J.S. Graphics Payroll Management",
+  description: "J.S. Graphics - Biometric Attendance, Hourly Salary Calculation & Payroll System",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "PayFlow",
+    title: "JS Graphics",
   },
 };
 

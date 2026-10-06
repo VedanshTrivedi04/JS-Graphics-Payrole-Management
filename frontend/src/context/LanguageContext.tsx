@@ -14,9 +14,9 @@ interface LanguageContextType {
 export const translations: Record<Language, Record<string, string>> = {
   en: {
     // Brand & Common
-    appName: "Identix PayFlow",
-    tagline: "Cloud Biometric Attendance, Hourly Wages & Payroll Engine",
-    subTagline: "Zero-LAN Biometric Attendance & Hourly Payroll",
+    appName: "J.S. Graphics Payroll",
+    tagline: "J.S. Graphics - Cloud Biometric Attendance, Hourly Wages & Payroll Engine",
+    subTagline: "J.S. Graphics Payroll Management",
     liveConnected: "Live Connected",
     connectingDb: "Connecting to Neon Database...",
     cloudAdms: "Cloud ADMS",
@@ -221,9 +221,9 @@ export const translations: Record<Language, Record<string, string>> = {
 
   hi: {
     // Brand & Common
-    appName: "Identix PayFlow",
-    tagline: "क्लाउड बायोमेट्रिक उपस्थिति, प्रति घंटा मजदूरी और पेरोल इंजन",
-    subTagline: "जीरो-LAN बायोमेट्रिक उपस्थिति और प्रति घंटा पेरोल",
+    appName: "J.S. Graphics पेरोल",
+    tagline: "जे.एस. ग्राफिक्स - बायोमेट्रिक उपस्थिति, प्रति घंटा मजदूरी और पेरोल इंजन",
+    subTagline: "J.S. Graphics Payroll Management",
     liveConnected: "लाइव कनेक्टेड",
     connectingDb: "नियॉन डेटाबेस से कनेक्ट हो रहा है...",
     cloudAdms: "क्लाउड ADMS",

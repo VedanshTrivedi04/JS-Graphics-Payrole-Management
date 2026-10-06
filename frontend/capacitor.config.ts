@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.identix.payflow',
-  appName: 'Identix PayFlow',
+  appId: 'com.jsgraphics.payroll',
+  appName: 'J.S. Graphics Payroll',
   webDir: 'out'
 };
 

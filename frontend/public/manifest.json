@@ -1,7 +1,7 @@
 {
-  "name": "Identix PayFlow - Biometric Attendance & Payroll",
-  "short_name": "PayFlow",
-  "description": "Cloud Biometric Attendance, Hourly Wages & Payroll Engine",
+  "name": "J.S. Graphics Payroll Management",
+  "short_name": "JS Graphics",
+  "description": "J.S. Graphics - Biometric Attendance & Payroll Engine",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#090d16",
