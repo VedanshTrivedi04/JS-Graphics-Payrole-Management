@@ -56,6 +56,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [payrollFromDate, setPayrollFromDate] = useState(firstDayOfMonth);
   const [payrollToDate, setPayrollToDate] = useState(todayStr);
   const [customRateOverride, setCustomRateOverride] = useState<string>("");
+  const [monthlyCycles, setMonthlyCycles] = useState<any[]>([]);
+  const [selectedMonthKey, setSelectedMonthKey] = useState<string>("");
 
   // Modals
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
@@ -83,11 +85,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  const fetchPayroll = async () => {
+  const fetchPayroll = async (from = payrollFromDate, to = payrollToDate) => {
     setLoading(true);
     try {
       const rate = customRateOverride ? parseFloat(customRateOverride) : undefined;
-      const report = await api.payroll.calculate(payrollFromDate, payrollToDate, undefined, rate);
+      const report = await api.payroll.calculate(from, to, undefined, rate);
       setPayrollReport(report);
     } catch (err: any) {
       alert("Failed to calculate payroll: " + err.message);
@@ -96,9 +98,40 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
+  const fetchMonthlyCycles = async () => {
+    try {
+      const cycles = await api.payroll.months(6);
+      setMonthlyCycles(cycles);
+      if (cycles.length > 0 && !selectedMonthKey) {
+        setSelectedMonthKey(cycles[0].month_key);
+      }
+    } catch (err) {
+      console.error("Error fetching monthly cycles:", err);
+    }
+  };
+
+  const handleMonthSelect = (key: string) => {
+    setSelectedMonthKey(key);
+    if (key === "custom") return;
+    const cycle = monthlyCycles.find((c) => c.month_key === key);
+    if (cycle) {
+      setPayrollFromDate(cycle.from_date);
+      setPayrollToDate(cycle.to_date);
+      fetchPayroll(cycle.from_date, cycle.to_date);
+    }
+  };
+
+  const selectCycle = (cycle: any) => {
+    setSelectedMonthKey(cycle.month_key);
+    setPayrollFromDate(cycle.from_date);
+    setPayrollToDate(cycle.to_date);
+    fetchPayroll(cycle.from_date, cycle.to_date);
+  };
+
   useEffect(() => {
     fetchData();
     fetchPayroll();
+    fetchMonthlyCycles();
     const interval = setInterval(fetchData, 10000); // Poll every 10s for real-time changes
     return () => clearInterval(interval);
   }, []);
@@ -147,17 +180,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleMarkPaid = async (empId: number) => {
+    const ref = prompt("Enter Payment Reference / Mode (e.g., Cash, UPI, GooglePay):", "Cash / UPI");
+    if (ref === null) return;
     try {
       const res = await api.payroll.markPaid({
         employee_id: empId,
         from_date: payrollFromDate,
         to_date: payrollToDate,
         payment_date: new Date().toISOString().substring(0, 10),
-        payment_reference: "Settled via Cash / UPI",
+        payment_reference: ref || "Settled via Cash / UPI",
         notes: "Full settlement for the period",
       });
       alert(res.message);
       fetchPayroll();
+      fetchMonthlyCycles();
       fetchData();
     } catch (err: any) {
       alert(err.message);
@@ -588,50 +624,119 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </a>
           </div>
 
-          {/* Date Filter & Rate Override Card */}
-          <div className="p-4 rounded-2xl glass-panel border border-slate-200 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                From Date
-              </label>
-              <input
-                type="date"
-                value={payrollFromDate}
-                onChange={(e) => setPayrollFromDate(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
-              />
+          {/* Smart Month Selector & Custom Date Filter */}
+          <div className="p-4 rounded-2xl glass-panel border border-slate-200 dark:border-slate-800 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                  Select Monthly Billing Cycle:
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={selectedMonthKey}
+                  onChange={(e) => handleMonthSelect(e.target.value)}
+                  className="px-3 py-1.5 text-xs font-bold rounded-xl bg-blue-50 dark:bg-slate-800 border border-blue-200 dark:border-slate-700 text-blue-700 dark:text-blue-300 focus:outline-none cursor-pointer"
+                >
+                  <option value="custom">📅 Custom Date Range (Manual)</option>
+                  {monthlyCycles.map((c) => (
+                    <option key={c.month_key} value={c.month_key}>
+                      {c.month_name} {c.is_current_month ? "(Live)" : ""} — {c.status}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={fetchMonthlyCycles}
+                  className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 text-xs flex items-center gap-1 cursor-pointer"
+                  title="Refresh Monthly History"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                To Date
-              </label>
-              <input
-                type="date"
-                value={payrollToDate}
-                onChange={(e) => setPayrollToDate(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Hourly Rate Override (Optional ₹)
-              </label>
-              <input
-                type="number"
-                placeholder="Default per staff"
-                value={customRateOverride}
-                onChange={(e) => setCustomRateOverride(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
-              />
-            </div>
-            <div>
-              <button
-                onClick={fetchPayroll}
-                disabled={loading}
-                className="w-full py-2 px-4 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 cursor-pointer disabled:opacity-50"
-              >
-                {loading ? "Calculating..." : "Calculate Statement"}
-              </button>
+
+            {/* Quick Month Pills */}
+            {monthlyCycles.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-1 pb-1">
+                {monthlyCycles.slice(0, 4).map((c) => {
+                  const isActive = selectedMonthKey === c.month_key;
+                  return (
+                    <button
+                      key={c.month_key}
+                      onClick={() => selectCycle(c)}
+                      className={`px-3 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                        isActive
+                          ? "bg-blue-600 text-white shadow-sm shadow-blue-500/20"
+                          : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                      }`}
+                    >
+                      <span>{c.month_name}</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                        c.status === "PAID"
+                          ? "bg-emerald-500/20 text-emerald-400 font-extrabold"
+                          : c.status === "PENDING"
+                          ? "bg-amber-500/20 text-amber-400"
+                          : "bg-slate-500/20 text-slate-400"
+                      }`}>
+                        {c.status}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end pt-2 border-t border-slate-100 dark:border-slate-800/80">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  From Date
+                </label>
+                <input
+                  type="date"
+                  value={payrollFromDate}
+                  onChange={(e) => {
+                    setPayrollFromDate(e.target.value);
+                    setSelectedMonthKey("custom");
+                  }}
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  To Date
+                </label>
+                <input
+                  type="date"
+                  value={payrollToDate}
+                  onChange={(e) => {
+                    setPayrollToDate(e.target.value);
+                    setSelectedMonthKey("custom");
+                  }}
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Hourly Rate Override (Optional ₹)
+                </label>
+                <input
+                  type="number"
+                  placeholder="Default per staff"
+                  value={customRateOverride}
+                  onChange={(e) => setCustomRateOverride(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <button
+                  onClick={() => fetchPayroll(payrollFromDate, payrollToDate)}
+                  disabled={loading}
+                  className="w-full py-2 px-4 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 cursor-pointer disabled:opacity-50"
+                >
+                  {loading ? "Calculating..." : "Calculate Statement"}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -671,6 +776,77 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   advancesCut={payrollReport.total_advances_deducted}
                   netPay={payrollReport.total_net_payout}
                 />
+              </div>
+            </div>
+          )}
+
+          {/* Monthly Archives Cards Overview */}
+          {monthlyCycles.length > 0 && (
+            <div className="rounded-2xl glass-panel p-4 border border-slate-200 dark:border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4 text-blue-500" />
+                    Har Mahine Ka Statement Record (Click to Open)
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Pichhle mahino ka auto-calculated hisaab, advance deductions aur settlement status
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {monthlyCycles.map((cycle) => {
+                  const isSelected = payrollFromDate === cycle.from_date && payrollToDate === cycle.to_date;
+                  return (
+                    <div
+                      key={cycle.month_key}
+                      onClick={() => selectCycle(cycle)}
+                      className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                        isSelected
+                          ? "border-blue-500 bg-blue-500/5 dark:bg-blue-500/10 ring-2 ring-blue-500/30"
+                          : "border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-slate-700 bg-white/50 dark:bg-slate-900/40"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                          {cycle.month_name}
+                          {cycle.is_current_month && (
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                              LIVE
+                            </span>
+                          )}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            cycle.status === "PAID"
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                              : cycle.status === "PENDING"
+                              ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                              : "bg-slate-500/10 text-slate-400"
+                          }`}
+                        >
+                          {cycle.status === "PAID" ? "SETTLED" : cycle.status === "PENDING" ? "PENDING" : "NO WORK"}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 text-[11px] pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                        <div>
+                          <span className="text-[10px] text-slate-400 block">Total Hours</span>
+                          <span className="font-bold text-blue-600 dark:text-blue-400">{cycle.total_hours_worked} hrs</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block">Advance Cut</span>
+                          <span className="font-bold text-rose-500">-₹{cycle.total_advances.toFixed(0)}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block">Net Payout</span>
+                          <span className="font-extrabold text-emerald-600 dark:text-emerald-400">₹{cycle.total_net.toFixed(0)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -735,13 +911,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               <FileText className="w-3.5 h-3.5" />
                               PDF Slip
                             </a>
-                            <button
-                              onClick={() => handleMarkPaid(emp.employee_id)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 font-bold border border-emerald-500/20 transition-all cursor-pointer"
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              Mark Paid
-                            </button>
+                            {emp.is_paid ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 text-xs">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                PAID ({emp.payment_reference || "Settled"})
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleMarkPaid(emp.employee_id)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 font-bold border border-emerald-500/20 transition-all cursor-pointer"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                Mark Paid
+                              </button>
+                            )}
                           </td>
                         </tr>
                       );

@@ -29,6 +29,9 @@ class EmployeePayrollSummary(BaseModel):
     
     daily_breakdown: List[DailyAttendanceResponse] = []
     advances_breakdown: List[AdvanceResponse] = []
+    is_paid: bool = False
+    payment_date: Optional[date] = None
+    payment_reference: Optional[str] = None
 
 class ComprehensivePayrollReport(BaseModel):
     organization_name: str
@@ -40,6 +43,19 @@ class ComprehensivePayrollReport(BaseModel):
     total_advances_deducted: float
     total_net_payout: float
     employees: List[EmployeePayrollSummary]
+
+class MonthlyCycleSummary(BaseModel):
+    month_key: str          # e.g., "2026-10"
+    month_name: str         # e.g., "October 2026"
+    from_date: date
+    to_date: date
+    is_current_month: bool
+    total_employees: int
+    total_hours_worked: float
+    total_gross: float
+    total_advances: float
+    total_net: float
+    status: str             # "PAID", "PENDING", "NO_ACTIVITY"
 
 class MarkPayrollPaidRequest(BaseModel):
     employee_id: int
