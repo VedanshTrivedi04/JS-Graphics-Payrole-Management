@@ -11,9 +11,9 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "postgresql://neondb_owner:npg_2VwgKF3qdYQk@ep-wandering-hat-b35rrgsu-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
 
-    DEFAULT_ORGANIZATION_NAME: str = "Retail Store & Enterprise"
+    DEFAULT_ORGANIZATION_NAME: str = "J.S. Graphics"
     DEFAULT_TIMEZONE: str = "Asia/Kolkata"
-    DEFAULT_CURRENCY_SYMBOL: str = "₹"
+    DEFAULT_CURRENCY_SYMBOL: str = "Rs. "
 
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:

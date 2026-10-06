@@ -15,12 +15,12 @@ services:
       - key: SECRET_KEY
         value: "supersecret_identix_jwt_key_please_change_in_production_998877"
       - key: PROJECT_NAME
-        value: "Identix Biometric Attendance & Payroll System"
+        value: "J.S. Graphics Payroll Management"
       - key: DEFAULT_ORGANIZATION_NAME
-        value: "Retail Store & Enterprise"
+        value: "J.S. Graphics"
       - key: DEFAULT_TIMEZONE
         value: "Asia/Kolkata"
       - key: DEFAULT_CURRENCY_SYMBOL
-        value: "₹"
+        value: "Rs. "
       - key: PYTHON_VERSION
         value: 3.12.0

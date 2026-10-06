@@ -70,12 +70,67 @@ def generate_employee_payslip_pdf(summary: EmployeePayrollSummary) -> io.BytesIO
         leading=11,
         textColor=colors.HexColor("#0f172a")
     )
+    header_cell_style = ParagraphStyle(
+        'HeaderCellText',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=9,
+        leading=12,
+        textColor=colors.white,
+        alignment=1 # Center
+    )
+    fin_cell_style = ParagraphStyle(
+        'FinCell',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=9,
+        leading=12,
+        textColor=colors.HexColor("#1e293b"),
+        alignment=1 # Center
+    )
+    fin_cell_bold = ParagraphStyle(
+        'FinCellBold',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=9,
+        leading=12,
+        textColor=colors.HexColor("#0f172a"),
+        alignment=1 # Center
+    )
+    fin_cell_net = ParagraphStyle(
+        'FinCellNet',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=10.5,
+        leading=13,
+        textColor=colors.HexColor("#15803d"),
+        alignment=1 # Center
+    )
+    cell_center_style = ParagraphStyle(
+        'CellCenterText',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=8.5,
+        leading=11,
+        textColor=colors.HexColor("#334155"),
+        alignment=1 # Center
+    )
+    cell_center_bold = ParagraphStyle(
+        'CellCenterBold',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=8.5,
+        leading=11,
+        textColor=colors.HexColor("#0f172a"),
+        alignment=1 # Center
+    )
 
     elements = []
+    sym = "Rs. "
 
     # 1. Company Header & Title
     elements.append(Paragraph(settings.DEFAULT_ORGANIZATION_NAME, title_style))
-    elements.append(Paragraph(f"ATTENDANCE & PAYROLL STATEMENT", subtitle_style))
+    elements.append(Paragraph("ATTENDANCE & PAYROLL STATEMENT", subtitle_style))
     elements.append(Paragraph(f"Period: {summary.from_date.strftime('%d-%b-%Y')} to {summary.to_date.strftime('%d-%b-%Y')}", subtitle_style))
     elements.append(Spacer(1, 12))
     elements.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor("#cbd5e1"), spaceAfter=12))
@@ -92,7 +147,7 @@ def generate_employee_payslip_pdf(summary: EmployeePayrollSummary) -> io.BytesIO
             Paragraph("<b>Department:</b>", cell_bold),
             Paragraph(summary.department or "General Staff", cell_style),
             Paragraph("<b>Hourly Rate:</b>", cell_bold),
-            Paragraph(f"{settings.DEFAULT_CURRENCY_SYMBOL}{summary.hourly_rate:.2f} / hr", cell_style)
+            Paragraph(f"{sym}{summary.hourly_rate:.2f} / hr", cell_style)
         ]
     ]
     info_table = Table(info_data, colWidths=[100, 160, 100, 160])
@@ -109,60 +164,67 @@ def generate_employee_payslip_pdf(summary: EmployeePayrollSummary) -> io.BytesIO
     elements.append(Spacer(1, 14))
 
     # 3. Financial & Hours Summary Box
-    sym = settings.DEFAULT_CURRENCY_SYMBOL
     financial_data = [
         [
-            Paragraph("<b>Days Worked</b>", cell_bold),
-            Paragraph("<b>Total Hours</b>", cell_bold),
-            Paragraph("<b>Gross Earnings</b>", cell_bold),
-            Paragraph("<b>Advance / Extra Cut</b>", cell_bold),
-            Paragraph("<b>Net Payable</b>", cell_bold),
+            Paragraph("Days Worked", header_cell_style),
+            Paragraph("Total Hours", header_cell_style),
+            Paragraph("Gross Earnings", header_cell_style),
+            Paragraph("Advance / Extra Cut", header_cell_style),
+            Paragraph("Net Payable", header_cell_style),
         ],
         [
-            Paragraph(f"{summary.total_days_present} days", cell_style),
-            Paragraph(f"{summary.total_hours_worked:.2f} hrs", cell_style),
-            Paragraph(f"{sym}{summary.gross_earnings:.2f}", cell_style),
-            Paragraph(f"-{sym}{summary.total_advances_deducted:.2f}", cell_bold),
-            Paragraph(f"<b>{sym}{summary.net_payable_salary:.2f}</b>", ParagraphStyle('NetStyle', parent=cell_bold, fontSize=11, textColor=colors.HexColor("#15803d"))),
+            Paragraph(f"{summary.total_days_present} days", fin_cell_style),
+            Paragraph(f"{summary.total_hours_worked:.2f} hrs", fin_cell_style),
+            Paragraph(f"{sym}{summary.gross_earnings:.2f}", fin_cell_style),
+            Paragraph(f"-{sym}{summary.total_advances_deducted:.2f}", fin_cell_bold),
+            Paragraph(f"<b>{sym}{summary.net_payable_salary:.2f}</b>", fin_cell_net),
         ]
     ]
     financial_table = Table(financial_data, colWidths=[90, 95, 110, 115, 110])
     financial_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#0f172a")),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#f1f5f9")),
         ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#0f172a")),
         ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('TOPPADDING', (0, 0), (-1, -1), 7),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
     ]))
-    # Quick fix header cell styles for dark background
-    for col in range(5):
-        financial_data[0][col] = Paragraph(f"<font color='white'><b>{financial_data[0][col].text}</b></font>", cell_style)
     elements.append(financial_table)
     elements.append(Spacer(1, 16))
 
     # 4. Itemized Attendance Breakdown Table
     elements.append(Paragraph("Day-by-Day Attendance Breakdown", section_style))
     att_headers = ["Date", "In-Time", "Out-Time", "Hours", "Rate", "Day's Earning", "Status"]
-    att_rows = [[Paragraph(f"<font color='white'><b>{h}</b></font>", cell_style) for h in att_headers]]
+    att_rows = [[Paragraph(h, header_cell_style) for h in att_headers]]
 
     for att in summary.daily_breakdown:
         in_str = att.first_in.strftime("%I:%M %p") if att.first_in else "--:--"
         out_str = att.last_out.strftime("%I:%M %p") if att.last_out else "--:--"
+        
+        status_color = "#15803d" if att.status == "PRESENT" else ("#b45309" if att.status in ["HALF_DAY", "PARTIAL"] else "#b91c1c")
+        status_style = ParagraphStyle(
+            f'Status_{att.status}',
+            parent=styles['Normal'],
+            fontName='Helvetica-Bold',
+            fontSize=8,
+            leading=10,
+            textColor=colors.HexColor(status_color),
+            alignment=1
+        )
+        
         att_rows.append([
-            Paragraph(att.date.strftime("%d-%b-%Y"), cell_style),
-            Paragraph(in_str, cell_style),
-            Paragraph(out_str, cell_style),
-            Paragraph(f"{att.total_hours:.2f}", cell_style),
-            Paragraph(f"{sym}{att.hourly_rate_applied:.1f}", cell_style),
-            Paragraph(f"{sym}{att.daily_earning:.2f}", cell_style),
-            Paragraph(att.status, cell_style)
+            Paragraph(att.date.strftime("%d-%b-%Y"), cell_center_style),
+            Paragraph(in_str, cell_center_style),
+            Paragraph(out_str, cell_center_style),
+            Paragraph(f"{att.total_hours:.2f}", cell_center_style),
+            Paragraph(f"{sym}{att.hourly_rate_applied:.1f}", cell_center_style),
+            Paragraph(f"{sym}{att.daily_earning:.2f}", cell_center_bold),
+            Paragraph(att.status, status_style)
         ])
 
     if len(summary.daily_breakdown) == 0:
-        att_rows.append([Paragraph("No attendance records found for this period", cell_style)] + [Paragraph("", cell_style)] * 6)
+        att_rows.append([Paragraph("No attendance records found for this period", cell_center_style)] + [Paragraph("", cell_center_style)] * 6)
 
     att_table = Table(att_rows, colWidths=[80, 75, 75, 55, 65, 85, 85])
     att_table.setStyle(TableStyle([
@@ -170,6 +232,7 @@ def generate_employee_payslip_pdf(summary: EmployeePayrollSummary) -> io.BytesIO
         ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
         ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#f1f5f9")),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('TOPPADDING', (0, 0), (-1, -1), 5),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
     ]))
@@ -180,14 +243,14 @@ def generate_employee_payslip_pdf(summary: EmployeePayrollSummary) -> io.BytesIO
     if summary.advances_breakdown:
         elements.append(Paragraph("Advances & Extra Pay Deductions (Cut from Total Salary)", section_style))
         adv_headers = ["Date", "Type", "Amount", "Mode", "Notes / Reason"]
-        adv_rows = [[Paragraph(f"<font color='white'><b>{h}</b></font>", cell_style) for h in adv_headers]]
+        adv_rows = [[Paragraph(h, header_cell_style) for h in adv_headers]]
 
         for adv in summary.advances_breakdown:
             adv_rows.append([
-                Paragraph(adv.date.strftime("%d-%b-%Y"), cell_style),
-                Paragraph(adv.payment_type, cell_style),
-                Paragraph(f"{sym}{adv.amount:.2f}", cell_bold),
-                Paragraph(adv.payment_mode, cell_style),
+                Paragraph(adv.date.strftime("%d-%b-%Y"), cell_center_style),
+                Paragraph(adv.payment_type, cell_center_style),
+                Paragraph(f"{sym}{adv.amount:.2f}", cell_center_bold),
+                Paragraph(adv.payment_mode, cell_center_style),
                 Paragraph(adv.reason or "Advance payment", cell_style)
             ])
 
