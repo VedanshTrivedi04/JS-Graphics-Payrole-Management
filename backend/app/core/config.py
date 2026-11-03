@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = "supersecret_identix_jwt_key_please_change_in_production_998877"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 365  # 365 days (1 year) persistent login
 
     DATABASE_URL: str = "postgresql://neondb_owner:npg_2VwgKF3qdYQk@ep-wandering-hat-b35rrgsu-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
 
