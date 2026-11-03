@@ -4,17 +4,24 @@ const os = require('os');
 const PORT = 8081;
 const CLOUD_URL = 'https://identixpay.onrender.com';
 
-// Detect local LAN IPv4 address (e.g., 192.168.1.13)
+// Detect local LAN IPv4 address (preferring physical 192.168.x.x LAN over virtual adapters)
 function getLocalIP() {
     const interfaces = os.networkInterfaces();
+    let fallback = '127.0.0.1';
     for (const name of Object.keys(interfaces)) {
+        if (name.toLowerCase().includes('vethernet') || name.toLowerCase().includes('wsl') || name.toLowerCase().includes('virtual')) {
+            continue;
+        }
         for (const iface of interfaces[name]) {
             if (iface.family === 'IPv4' && !iface.internal) {
-                return iface.address;
+                if (iface.address.startsWith('192.168.')) {
+                    return iface.address;
+                }
+                fallback = iface.address;
             }
         }
     }
-    return '127.0.0.1';
+    return fallback;
 }
 
 const localIP = getLocalIP();
